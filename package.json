@@ -1,0 +1,61 @@
+{
+  "name": "nodejs_vuejs",
+  "version": "1.0.0",
+  "description": "",
+  "author": "DeSofto (Dmitry Silchenko)",
+  "license": "MIT",
+  "main": "index.js",
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
+  ],
+  "scripts": {
+    "migration": "node ./cmds/migration.js",
+    "migrate": "node ./cmds/migrate.js",
+    "api:dev": "nodemon --watch . --exec node -- index.js",
+    "api": "node index.js",
+    "app:dev": "webpack serve --inline --progress --config webpack.config.js",
+    "app:build-watch": "webpack --progress --watch",
+    "app:build": "webpack --progress --mode production",
+    "app:build2": "webpack --progress --optimize-minimize --mode production",
+    "dev": "npm run api:dev & npm run app:dev"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "pg": "^8.5.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.9",
+    "@babel/polyfill": "^7.12.1",
+    "@babel/preset-env": "^7.12.7",
+    "babel-loader": "^8.2.2",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-es2015-arrow-functions": "^6.22.0",
+    "babel-plugin-transform-es2015-shorthand-properties": "^6.24.1",
+    "babel-preset-es2016": "^6.24.1",
+    "core-js": "^3.8.0",
+    "css-loader": "^3.4.2",
+    "file-loader": "^6.1.1",
+    "nodemon": "^2.0.6",
+    "optimize-css-assets-webpack-plugin": "^5.0.4",
+    "sass": "^1.27.0",
+    "sass-loader": "^10.0.3",
+    "uglifyjs-webpack-plugin": "^2.2.0",
+    "vue": "^2.6.10",
+    "vue-loader": "^15.9.5",
+    "vue-resource": "^1.5.1",
+    "vue-template-compiler": "^2.4.4",
+    "vuetify": "^2.3.14",
+    "webpack": "^4.44.2",
+    "webpack-cli": "^4.2.0",
+    "webpack-dev-server": "^3.11.0",
+    "xmlhttprequest": "^1.8.0"
+  },
+  "optionalDependencies": {
+    "fsevents": "^2.1.3"
+  }
+}

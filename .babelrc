@@ -1,0 +1,10 @@
+{
+  "presets": [
+  ],
+
+  "plugins": [
+    ["transform-class-properties", { "spec": true }],
+    "transform-es2015-shorthand-properties",
+    "transform-es2015-arrow-functions"
+  ]
+}
