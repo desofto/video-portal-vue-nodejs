@@ -10,7 +10,13 @@ app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
 
 const cors = require("cors")
-app.use(cors())
+app.use(cors({
+  origin: true,
+  optionsSuccessStatus: 204
+}))
+
+const compression = require("compression")
+app.use(compression())
 
 /*****************************************************/
 
@@ -18,15 +24,9 @@ app.use(express.static(__dirname + "/public"))
 
 /*****************************************************/
 
-// req.params - route
-// req.query - get
-// req.body - post
-
-app.get("/test/:id", async (req, res) => {
-  res.status(200).send(req.params)
+app.get("/", async (req, res) => {
+  res.status(200).sendFile("index.html", { root: __dirname })
 })
-
-/*****************************************************/
 
 app.get("/dist/main.bundle.js", async (req, res) => {
   res.status(200).sendFile("main.bundle.js", { root: __dirname + "/dist" })
@@ -62,7 +62,7 @@ app.post("/login", async (req, res) => {
     await user.save()
     res.status(200).send("OK")
   } catch(e) {
-    return res.status(500).send(e.message)
+    res.status(500).send(e.message)
   }
 })
 
@@ -73,22 +73,33 @@ app.post("/logout", async (req, res) => {
     await user.save()
     res.status(200).send("OK")
   } catch(e) {
-    return res.status(500).send(e.message)
+    res.status(500).send(e.message)
   }
 })
 
 app.get("/videos", async (req, res) => {
   try {
-    let videos = await Video.all()
+    let videos = await Video.where("name ilike $1 order by rating desc", ["%" + req.query.search + "%"])
     let data = videos.map(video => ({
       id: video.id,
       name: video.name,
       poster_url: video.poster_url,
-      rating: 2.5
+      rating: video.rating
     }))
     res.status(200).send(data)
   } catch(e) {
-    return res.status(500).send(e.message)
+    res.status(500).send(e.message)
+  }
+})
+
+app.post("/video/:id", async (req, res) => {
+  try {
+    let video = await Video.find(req.params.id)
+    video.rating = req.body.rating
+    await video.save()
+    res.status(200).send("ok")
+  } catch (e) {
+    res.status(500).send(e.message)
   }
 })
 

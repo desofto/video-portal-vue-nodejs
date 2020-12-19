@@ -1,7 +1,10 @@
 var path = require('path')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const UglifyJsPlugin = require('webpack-uglify-harmony-plugin')
+
+const dotenv = require("dotenv")
+dotenv.config()
 
 module.exports = (env, argv) => {
   let production = (argv.mode === "production")
@@ -68,7 +71,24 @@ module.exports = (env, argv) => {
       overlay: true,
       publicPath: '/dist',
       open: true,
-      hot: true
+      hot: true,
+      proxy: {
+        "/apiql": {
+          target: `http://localhost:${process.env.PORT}`
+        },
+        "/login": {
+          target: `http://localhost:${process.env.PORT}`
+        },
+        "/logout": {
+          target: `http://localhost:${process.env.PORT}`
+        },
+        "/videos": {
+          target: `http://localhost:${process.env.PORT}`
+        },
+        "/video/*": {
+          target: `http://localhost:${process.env.PORT}`
+        }
+      }
     },
     performance: {
       hints: false

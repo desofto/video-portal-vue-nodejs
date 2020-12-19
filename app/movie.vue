@@ -1,14 +1,12 @@
 <template>
   <div class="movie">
-    <div>
-      <img :src="poster" />
+    <div class="d-flex mb-1">
+      <img :src="poster" class="mx-auto" />
     </div>
     <div class="text-center">{{ title }}</div>
     <div class="d-flex">
       <ul class="rate pa-0 mx-auto">
-        <li class="star"></li>
-        <li class="star"></li>
-        <li class="star"></li>
+        <li v-for="rate in 5" :key="rate" class="star" :class="{ mark: rating >= rate }" @click="updateRating(rate)" />
       </ul>
     </div>
   </div>
@@ -17,19 +15,27 @@
 <script>
   export default {
     props: {
+      id: Number,
       title: String,
-      poster: String
+      poster: String,
+      rating: Number
+    },
+
+    methods: {
+      updateRating(rating) {
+        this.$emit("update-rating", rating)
+      }
     }
   }
 </script>
 
 <style scoped lang="scss">
   img {
-    max-width: 10em;
-    max-height: 20em;
+    max-width: 30em;
+    height: 10em;
   }
 
-  .rate:hover .star {
+  .rate:hover .star, .rate:not(:hover) .star.mark {
     color: #06c;
   }
 

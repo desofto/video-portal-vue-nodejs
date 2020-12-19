@@ -20,15 +20,14 @@ async function migrate(hash, migration) {
 
   let files = fs.readdirSync("./db/migrations/").sort()
 
-  let promises = []
-
-  files.forEach(file => {
-    promises.push(migrate(file, async () => {
+  //for(const file of files) {
+  await files.reduce(async (promise, file) => {
+    await promise;
+    await migrate(file, async () => {
+      console.log(file)
       await require("../db/migrations/" + file)()
-    }))
-  })
-
-  await Promise.all(promises)
+    })
+  }, Promise.resolve())
 
   pool.end()
 })()

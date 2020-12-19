@@ -12,6 +12,6 @@ module.exports = async () => {
 }
 `
 
-fs.writeFile("./migrations/" + moment().format('YYYY-MM-DD-HH-mm-ss') + ".js", Template, function (err) {
+fs.writeFile("./db/migrations/" + moment().format('YYYY-MM-DD-HH-mm-ss') + ".js", Template, function (err) {
   if (err) throw err
 })
