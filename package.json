@@ -20,6 +20,8 @@
     "app:build-watch": "webpack --progress --watch",
     "app:build": "webpack --progress --mode production",
     "app:build2": "webpack --progress --optimize-minimize --mode production",
+    "worker:dev": "nodemon --watch . --exec node -- worker.js",
+    "worker": "node worker.js",
     "dev": "npm run api:dev & npm run app:dev"
   },
   "dependencies": {
@@ -28,7 +30,9 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "pg": "^8.5.1"
+    "node-uuid": "^1.4.8",
+    "pg": "^8.5.1",
+    "redis-fast-driver": "^2.1.5"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",

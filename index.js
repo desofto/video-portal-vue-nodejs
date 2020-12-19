@@ -18,6 +18,10 @@ app.use(cors({
 const compression = require("compression")
 app.use(compression())
 
+const Redis = require("./shared/redis")
+
+const uuid = require("node-uuid")
+
 /*****************************************************/
 
 app.use(express.static(__dirname + "/public"))
@@ -79,14 +83,30 @@ app.post("/logout", async (req, res) => {
 
 app.get("/videos", async (req, res) => {
   try {
-    let videos = await Video.where("name ilike $1 order by rating desc", ["%" + req.query.search + "%"])
-    let data = videos.map(video => ({
-      id: video.id,
-      name: video.name,
-      poster_url: video.poster_url,
-      rating: video.rating
-    }))
-    res.status(200).send(data)
+    const redis = Redis()
+
+    let key = 'videos-' + uuid.v4()
+
+    await redis.rawCallAsync(["set", key, JSON.stringify({ search: req.query.search })])
+
+    const redis2 = Redis()
+    redis2.rawCall(["subscribe", "videos-answer"], async (err, data) => {
+      let [call, channel, msg] = data
+
+      if(call === "subscribe") {
+        await redis.rawCallAsync(["LPUSH", "videos", key])
+      }
+
+      if(call !== "message") return
+      if(msg !== key) return
+
+      data = await redis.rawCallAsync(["get", key])
+      data = JSON.parse(data)
+
+      res.status(200).send(data)
+
+      await redis2.rawCallAsync(["unsubscribe"])
+    })
   } catch(e) {
     res.status(500).send(e.message)
   }
@@ -108,3 +128,7 @@ app.post("/video/:id", async (req, res) => {
 app.listen(process.env.PORT).on("listening", () => {
   console.log(`Started on port ${process.env.PORT}`)
 })
+
+/*****************************************************/
+
+require("./worker")
