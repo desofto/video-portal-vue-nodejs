@@ -3,38 +3,27 @@
 const dotenv = require("dotenv")
 dotenv.config()
 
-const Redis = require("./shared/redis")
-
-const redis = Redis()
+const RedisMQ = require("./shared/redis-mq")
 
 const Video = require("./models/video")
 
-async function process() {
-  try {
-    let data = await redis.rawCallAsync(["BRPOP", "videos", 0])
-    let key = data[1]
+RedisMQ.subscribe("videos", async req => {
+  let videos = await Video.where("name ilike $1 order by rating desc", ["%" + req.query.search + "%"])
 
-    let req = await redis.rawCallAsync(["get", key])
-    req = JSON.parse(req)
+  let data = videos.map(video => ({
+    id: video.id,
+    name: video.name,
+    poster_url: video.poster_url,
+    rating: video.rating
+  }))
 
-    let videos = await Video.where("name ilike $1 order by rating desc", ["%" + req.search + "%"])
+  return data
+})
 
-    data = videos.map(video => ({
-      id: video.id,
-      name: video.name,
-      poster_url: video.poster_url,
-      rating: video.rating
-    }))
+RedisMQ.subscribe("video-post", async req => {
+  let video = await Video.find(req.params.id)
+  video.rating = req.body.rating
+  await video.save()
 
-    await redis.rawCallAsync(["set", key, JSON.stringify(data)])
-    await redis.rawCallAsync(["PUBLISH", "videos-answer", key])
-  } catch(_) {
-    await redis.rawCallAsync(["LPUSH", "videos", key])
-  }
-
-  setTimeout(_ => {
-    process()
-  }, 0)
-}
-
-process()
+  return "ok"
+})

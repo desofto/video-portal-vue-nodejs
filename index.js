@@ -18,9 +18,7 @@ app.use(cors({
 const compression = require("compression")
 app.use(compression())
 
-const Redis = require("./shared/redis")
-
-const uuid = require("node-uuid")
+const RedisMQ = require("./shared/redis-mq")
 
 /*****************************************************/
 
@@ -83,30 +81,8 @@ app.post("/logout", async (req, res) => {
 
 app.get("/videos", async (req, res) => {
   try {
-    const redis = Redis()
-
-    let key = 'videos-' + uuid.v4()
-
-    await redis.rawCallAsync(["set", key, JSON.stringify({ search: req.query.search })])
-
-    const redis2 = Redis()
-    redis2.rawCall(["subscribe", "videos-answer"], async (err, data) => {
-      let [call, channel, msg] = data
-
-      if(call === "subscribe") {
-        await redis.rawCallAsync(["LPUSH", "videos", key])
-      }
-
-      if(call !== "message") return
-      if(msg !== key) return
-
-      data = await redis.rawCallAsync(["get", key])
-      data = JSON.parse(data)
-
-      res.status(200).send(data)
-
-      await redis2.rawCallAsync(["unsubscribe"])
-    })
+    let data = await RedisMQ.process("videos", { params: req.params, query: req.query, body: req.body })
+    res.status(200).send(data)
   } catch(e) {
     res.status(500).send(e.message)
   }
@@ -114,10 +90,8 @@ app.get("/videos", async (req, res) => {
 
 app.post("/video/:id", async (req, res) => {
   try {
-    let video = await Video.find(req.params.id)
-    video.rating = req.body.rating
-    await video.save()
-    res.status(200).send("ok")
+    let data = await RedisMQ.process("video-post", { params: req.params, query: req.query, body: req.body })
+    res.status(200).send(data)
   } catch (e) {
     res.status(500).send(e.message)
   }
