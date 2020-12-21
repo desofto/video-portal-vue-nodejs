@@ -3,11 +3,20 @@
 const Redis = require("./redis")
 const uuid = require("node-uuid")
 
+class Timeout {
+  constructor() {
+    this.message = "Timeout"
+    this.name = "Timeout"
+  }
+}
+
+const { NotFound, UnprocessableEntity } = require("./exceptions")
+
 function process(channel, req) {
   return new Promise(async (resolve, reject) => {
     try {
       setTimeout(_ => {
-        reject(new Error("Timeout"))
+        reject(new Timeout())
       }, 60*1000)
 
       const redis = Redis()
@@ -42,33 +51,48 @@ function process(channel, req) {
 
 function subscribe(channel, callback) {
   let process = async _ => {
-    let redis, key
-
     try {
-      redis = Redis()
+      let res = {
+        status: undefined,
+        data: undefined
+      }
+
+      let redis = Redis()
 
       let data = await redis.rawCallAsync(["BRPOP", channel, 0])
-      key = data[1]
+      let key = data[1]
 
-      setTimeout(_ => {
-        process()
-      }, 0)
+      try {
+        setTimeout(_ => {
+          process()
+        }, 0)
 
-      let req = await redis.rawCallAsync(["get", key])
-      req = JSON.parse(req)
+        let req = await redis.rawCallAsync(["get", key])
+        req = JSON.parse(req)
 
-      data = await callback(req)
+        res.data = await callback(req)
+        if (res.data === undefined) res.data = null
 
-      await redis.rawCallAsync(["set", key, JSON.stringify(data)])
-      await redis.rawCallAsync(["PUBLISH", channel, key])
-    } catch (e) {
-      if(redis && key) {
-        await redis.rawCallAsync(["LPUSH", channel, key])
-      } else throw e
-    }
+        res.status = res.data ? 200 : 204
+      } catch (e) {
+        if (e instanceof NotFound) {
+          res.status = 404
+          res.data = e.message
+        } else if (e instanceof UnprocessableEntity) {
+          res.status = 422
+          res.data = e.message
+        } else {
+          res.status = 500
+          res.data = e.message
+        }
+      } finally {
+        await redis.rawCallAsync(["set", key, JSON.stringify(res)])
+        await redis.rawCallAsync(["PUBLISH", channel, key])
+      }
+    } catch {}
   }
 
   process()
 }
 
-module.exports = { process, subscribe }
+module.exports = { process, subscribe, Timeout }

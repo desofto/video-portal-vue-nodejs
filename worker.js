@@ -25,5 +25,5 @@ RedisMQ.subscribe("video-post", async req => {
   video.rating = req.body.rating
   await video.save()
 
-  return "ok"
+  return 
 })

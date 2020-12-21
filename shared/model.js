@@ -1,5 +1,7 @@
 const { pool } = require("../db")
 
+const { SqlError, NotFound, UnprocessableEntity } = require("./exceptions")
+
 class GettersSetters {
   constructor() {
     this._data = {}
@@ -49,6 +51,8 @@ class Model extends GettersSetters {
       if (res.rowCount > 0) {
         this._changes = {}
         return true
+      } else {
+        throw UnprocessableEntity(this.constructor.TableName, "unknown reason")
       }
     } else {
       let fields = [], values = [], params = []
@@ -65,6 +69,8 @@ class Model extends GettersSetters {
         this._data.id = res.rows[0].id
         this._changes = {}
         return true
+      } else {
+        throw UnprocessableEntity(this.constructor.TableName, "unknown reason")
       }
     }
   }
@@ -80,7 +86,7 @@ class Model extends GettersSetters {
       let { rows } = await pool.query(sql, params)
       return rows
     } catch (e) {
-      return
+      throw new SqlError(sql, params, e.message)
     }
   }
 
@@ -89,9 +95,12 @@ class Model extends GettersSetters {
   }
 
   static async findBySQL(conditions = "1 = 1", params = []) {
-    let rows = await this.query(`select * from ${this.TableName} where ${conditions} limit 1`, params)
+    let sql = `select * from ${this.TableName} where ${conditions} limit 1`
+    let rows = await this.query(sql, params)
     if (rows.length > 0) {
       return (new this(rows[0]))
+    } else {
+      throw new NotFound(sql, params)
     }
   }
 

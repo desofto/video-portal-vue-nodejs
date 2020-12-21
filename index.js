@@ -81,19 +81,29 @@ app.post("/logout", async (req, res) => {
 
 app.get("/videos", async (req, res) => {
   try {
-    let data = await RedisMQ.process("videos", { params: req.params, query: req.query, body: req.body })
-    res.status(200).send(data)
+    let params = (({ params, query, body }) => ({ params, query, body }))(req)
+    let { status, data } = await RedisMQ.process("videos", params)
+    res.status(status).send(data)
   } catch(e) {
-    res.status(500).send(e.message)
+    if (e instanceof RedisMQ.Timeout) {
+      res.status(504).send(e.message)
+    } else {
+      res.status(500).send(e.message)
+    }
   }
 })
 
-app.post("/video/:id", async (req, res) => {
+app.put("/video/:id", async (req, res) => {
   try {
-    let data = await RedisMQ.process("video-post", { params: req.params, query: req.query, body: req.body })
-    res.status(200).send(data)
+    let params = (({ params, query, body }) => ({ params, query, body }))(req)
+    let { status, data } = await RedisMQ.process("video-post", params)
+    res.status(status).send(data)
   } catch (e) {
-    res.status(500).send(e.message)
+    if (e instanceof RedisMQ.Timeout) {
+      res.status(504).send(e.message)
+    } else {
+      res.status(500).send(e.message)
+    }
   }
 })
 

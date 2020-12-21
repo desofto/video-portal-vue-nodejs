@@ -25,15 +25,15 @@
         this.$http.get("/videos?search=" + this.search).then(response => {
           this.movies = response.body
         }, response => {
-          alert("Backend error")
+          alert("Backend error: " + response.body)
         })
       },
 
       updateRating(movie, rating) {
-        this.$http.post(`/video/${movie.id}`, { rating: rating }).then(response => {
+        this.$http.put(`/video/${movie.id}`, { rating: rating }).then(response => {
           movie.rating = rating
         }, response => {
-          alert("Backend error")          
+          alert("Backend error: " + response.body)
         })
       }
     },
