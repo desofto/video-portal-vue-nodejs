@@ -3,22 +3,11 @@
 const Redis = require("./redis")
 const uuid = require("node-uuid")
 
-class Timeout {
-  constructor() {
-    this.message = "Timeout"
-    this.name = "Timeout"
-  }
-}
-
 const { NotFound, UnprocessableEntity } = require("./exceptions")
 
 function process(channel, req) {
   return new Promise(async (resolve, reject) => {
     try {
-      setTimeout(_ => {
-        reject(new Timeout())
-      }, 60*1000)
-
       const redis = Redis()
 
       let key = channel + '-' + uuid.v4()
@@ -95,4 +84,4 @@ function subscribe(channel, callback) {
   process()
 }
 
-module.exports = { process, subscribe, Timeout }
+module.exports = { process, subscribe }
