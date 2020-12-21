@@ -55,7 +55,6 @@ app.post("/apiql", async (req, res) => {
 /*****************************************************/
 
 const User = require("./models/user")
-const Video = require("./models/video")
 
 app.post("/login", async (req, res) => {
   try {

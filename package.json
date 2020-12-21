@@ -21,7 +21,8 @@
     "app:build": "webpack --progress --mode production",
     "app:build2": "webpack --progress --optimize-minimize --mode production",
     "worker:dev": "nodemon --watch . --exec node -- worker.js",
-    "worker": "node worker.js",
+    "worker:js": "node worker.js",
+    "worker:ruby": "ruby worker.rb",
     "dev": "npm run api:dev & npm run app:dev"
   },
   "dependencies": {
