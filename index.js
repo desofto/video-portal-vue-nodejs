@@ -18,6 +18,9 @@ app.use(cors({
 const compression = require("compression")
 app.use(compression())
 
+const cookieParser = require("cookie-parser")
+app.use(cookieParser())
+
 const RedisMQ = require("./shared/redis-mq")
 
 /*****************************************************/
@@ -80,6 +83,17 @@ app.post("/logout", async (req, res) => {
 
 /*****************************************************/
 
+const uuid = require("node-uuid")
+
+app.use(async (req, res, next) => {
+  req.sessionId = (req.cookies && req.cookies['session-id']) || uuid.v4()
+  res.cookie('session-id', req.sessionId, { maxAge: 600*1000, httpOnly: true })
+
+  next()
+})
+
+/*****************************************************/
+
 function processor(channel) {
   return async function(req, res) {
     try {
@@ -87,7 +101,7 @@ function processor(channel) {
         res.status(504).send("Timeout")
       }, 60 * 1000)
 
-      let params = (({ params, query, body }) => ({ params, query, body }))(req)
+      let params = (({ params, query, body, sessionId }) => ({ params, query, body, sessionId }))(req)
       let { status, data } = await RedisMQ.process(channel, params)
 
       res.status(status).send(data)
