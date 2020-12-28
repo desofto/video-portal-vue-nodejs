@@ -74,8 +74,12 @@ const User = require("./models/user")
 
 app.post("/api/signup", async (req, res) => {
   try {
-    let user = await User.findBySQL("email = $1", [req.body.email])
-    if(user) throw new Error('Already registered')
+    let user
+    try {
+      user = await User.findBySQL("email = $1", [req.body.email])
+    } catch {}
+    if (user) throw new Error('Already registered')
+    
     user = new User()
     user.email = req.body.email
     user.password = req.body.password
