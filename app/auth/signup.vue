@@ -21,39 +21,38 @@
         </v-card-title>
 
         <v-card-text>
-          <v-text-field 
-            label="Email" 
-            name="email"
-            type="email"
-            hide-details="auto" 
-            :rules="[rules.required, rules.min8]" 
-            v-model="form.email" 
-            hint="At least 8 characters"
-          />
-          
-          <v-text-field 
-            label="Password" 
-            name="password"
-            hide-details="auto" 
-            :rules="[rules.required, rules.min8]" 
-            v-model="form.password" 
-            :append-icon="showPasswords ? 'mdi-eye' : 'mdi-eye-off'"
-            @click:append="showPasswords = !showPasswords"
-            :type="showPasswords ? 'text' : 'password'"
-            hint="At least 8 characters"
-          />
-          
-          <v-text-field 
-            label="Password confirm" 
-            name="passwordConfirm"
-            hide-details="auto" 
-            :rules="[rules.required, rules.min8]" 
-            v-model="form.passwordConfirm" 
-            :append-icon="showPasswords ? 'mdi-eye' : 'mdi-eye-off'"
-            @click:append="showPasswords = !showPasswords"
-            :type="showPasswords ? 'text' : 'password'"
-            hint="At least 8 characters"
-          />
+          <v-form ref="form" class="mx-2" lazy-validation>
+            <v-text-field
+              label="Email"
+              name="email"
+              type="email"
+              hide-details="auto"
+              :rules="[rules.required, rules.email]"
+              v-model="form.email"
+            />
+
+            <v-text-field
+              label="Password"
+              name="password"
+              hide-details="auto"
+              :rules="[rules.required]"
+              v-model="form.password"
+              :append-icon="showPasswords ? 'mdi-eye' : 'mdi-eye-off'"
+              @click:append="showPasswords = !showPasswords"
+              :type="showPasswords ? 'text' : 'password'"
+            />
+
+            <v-text-field
+              label="Password confirm"
+              name="password_confirm"
+              hide-details="auto"
+              :rules="[rules.required]"
+              v-model="form.password_confirm"
+              :append-icon="showPasswords ? 'mdi-eye' : 'mdi-eye-off'"
+              @click:append="showPasswords = !showPasswords"
+              :type="showPasswords ? 'text' : 'password'"
+            />
+          </v-form>
         </v-card-text>
 
         <v-divider></v-divider>
@@ -82,12 +81,14 @@
       rules: {
         required: value => !!value || 'Required.',
         min8: value => (value && value.length >= 8) || 'Min 8 characters',
+        email: value => /^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(value) || 'E-mail must be valid',
       }
     }),
 
     methods: {
       async signup(form) {
         try {
+          if(!this.$refs.form.validate()) return
           await this.$globals.currentUser.signup(form)
           this.dialog = false
         } catch (error) {

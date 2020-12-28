@@ -74,6 +74,8 @@ const User = require("./models/user")
 
 app.post("/api/signup", async (req, res) => {
   try {
+    if (req.body.password !== req.body.password_confirm) throw new Error('Passwords do not match')
+    
     let user
     try {
       user = await User.findBySQL("email = $1", [req.body.email])
