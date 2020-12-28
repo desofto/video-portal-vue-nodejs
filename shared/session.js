@@ -33,6 +33,9 @@ module.exports = class Session {
   }
 
   async save() {
+    await redis.rawCallAsync(["MULTI"])
     await redis.rawCallAsync(["set", 'session-' + this.id, JSON.stringify(this._data)])
+    await redis.rawCallAsync(["expire", 'session-' + this.id, 900])
+    await redis.rawCallAsync(["EXEC"])
   }
 }

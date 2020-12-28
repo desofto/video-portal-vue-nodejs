@@ -87,7 +87,7 @@ const uuid = require("node-uuid")
 
 app.use(async (req, res, next) => {
   req.sessionId = (req.cookies && req.cookies['session-id']) || uuid.v4()
-  res.cookie('session-id', req.sessionId, { maxAge: 600*1000, httpOnly: true })
+  res.cookie('session-id', req.sessionId, { maxAge: 900*1000, httpOnly: true })
 
   next()
 })
