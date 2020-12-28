@@ -76,16 +76,7 @@ module.exports = (env, argv) => {
         "/apiql": {
           target: `http://localhost:${process.env.PORT}`
         },
-        "/login": {
-          target: `http://localhost:${process.env.PORT}`
-        },
-        "/logout": {
-          target: `http://localhost:${process.env.PORT}`
-        },
-        "/videos": {
-          target: `http://localhost:${process.env.PORT}`
-        },
-        "/video/*": {
+        "/api/*": {
           target: `http://localhost:${process.env.PORT}`
         }
       }

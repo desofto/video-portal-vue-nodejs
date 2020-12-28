@@ -13,6 +13,9 @@ Vue.use(Vuetify)
 
 const vuetify = new Vuetify({})
 
+import '@/globals'
+import '@/auth/current-user'
+
 import App from "./app"
 
 document.addEventListener("DOMContentLoaded", () => {

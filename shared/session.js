@@ -28,8 +28,12 @@ module.exports = class Session {
   }
 
   async load() {
-    let session = await redis.rawCallAsync(["get", 'session-' + this.id])
-    this._data = JSON.parse(session) || { id: this.id }
+    try {
+      let session = await redis.rawCallAsync(["get", 'session-' + this.id])
+      this._data = JSON.parse(session) || { id: this.id }
+    } catch {
+      this._data = { id: this.id }
+    }
   }
 
   async save() {

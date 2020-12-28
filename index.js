@@ -43,6 +43,17 @@ app.get("/dist/main.bundle.js.map", async (req, res) => {
 
 /*****************************************************/
 
+const uuid = require("node-uuid")
+
+app.use(async (req, res, next) => {
+  req.sessionId = (req.cookies && req.cookies['session-id']) || uuid.v4()
+  res.cookie('session-id', req.sessionId, { maxAge: 900 * 1000, httpOnly: true, SameSite: 'Strict' })
+
+  next()
+})
+
+/*****************************************************/
+
 app.get("/apiql", async (req, res) => {
   res.status(200).sendFile("apiql.html", { root: __dirname + "/public" })
 })
@@ -57,39 +68,55 @@ app.post("/apiql", async (req, res) => {
 
 /*****************************************************/
 
+const Session = require("./shared/session")
+
 const User = require("./models/user")
 
-app.post("/login", async (req, res) => {
+app.post("/api/signup", async (req, res) => {
   try {
-    let user = await User.findBySQL("email = $1 AND password", [req.body.email, req.body.password])
-    user.token = String(+new Date())
+    let user = await User.findBySQL("email = $1", [req.body.email])
+    if(user) throw new Error('Already registered')
+    user = new User()
+    user.email = req.body.email
+    user.password = req.body.password
     await user.save()
-    res.status(200).send("OK")
+    res.status(200).send({ email: user.email })
+  } catch (e) {
+    res.status(500).send(e.message)
+  }
+})
+
+app.post("/api/login", async (req, res) => {
+  try {
+    let user
+    try {
+      user = await User.findBySQL("email = $1 AND password = $2", [req.body.email, req.body.password])
+    } catch {
+      throw new Error('Email and/or password do not match')
+    }
+
+    let session = new Session(req.sessionId)
+    await session.load()
+    session.currentUserId = user.id
+    session.save()
+
+    res.status(200).send({ email: user.email })
   } catch(e) {
     res.status(500).send(e.message)
   }
 })
 
-app.post("/logout", async (req, res) => {
+app.post("/api/logout", async (req, res) => {
   try {
-    let user = await User.findBySQL("token = $1", [req.body.token])
-    user.token = null
-    await user.save()
-    res.status(200).send("OK")
+    let session = new Session(req.sessionId)
+    await session.load()
+    session.currentUserId = null
+    session.save()
+
+    res.status(200).send({})
   } catch(e) {
     res.status(500).send(e.message)
   }
-})
-
-/*****************************************************/
-
-const uuid = require("node-uuid")
-
-app.use(async (req, res, next) => {
-  req.sessionId = (req.cookies && req.cookies['session-id']) || uuid.v4()
-  res.cookie('session-id', req.sessionId, { maxAge: 900*1000, httpOnly: true })
-
-  next()
 })
 
 /*****************************************************/
@@ -113,8 +140,8 @@ function processor(channel) {
   }
 }
 
-app.get("/videos", processor("videos"))
-app.put("/video/:id", processor("video-post"))
+app.get("/api/videos", processor("videos"))
+app.put("/api/video/:id", processor("video-post"))
 
 /*****************************************************/
 
