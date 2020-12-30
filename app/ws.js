@@ -5,19 +5,21 @@ class WS {
     this.socket = null
     this.url = url
     this.queue = []
-    this.callbacks = {}
+    this.promises = {}
     this.connect()
   }
 
-  send(command, params, callback) {
-    let id = uuid.v4()
-    let message = JSON.stringify({ id, command, params })
-    this.callbacks[id] = callback
-    if (this.socket.readyState == WebSocket.OPEN) {
-      this.socket.send(message)
-    } else {
-      this.queue.push(message)
-    }
+  send(command, params) {
+    return new Promise((resolve, reject) => {
+      let id = uuid.v4()
+      let message = JSON.stringify({ id, command, params })
+      this.promises[id] = { resolve, reject }
+      if (this.socket.readyState == WebSocket.OPEN) {
+        this.socket.send(message)
+      } else {
+        this.queue.push(message)
+      }
+    })
   }
 
   connect() {
@@ -33,13 +35,13 @@ class WS {
     this.socket.onmessage = event => {
       let message = JSON.parse(event.data)
       let { id, status, data } = message
-      let callback = this.callbacks[id]
-      delete this.callbacks[id]
-      if(callback) {
+      let { resolve, reject } = this.promises[id]
+      delete this.promises[id]
+      if (resolve) {
         if(status >= 200 && status < 300) {
-          callback(data)
+          resolve(data)
         } else {
-          alert(data)
+          reject(data)
         }
       }
     }

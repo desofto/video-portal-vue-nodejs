@@ -33,12 +33,15 @@
     },
 
     methods: {
-      loadMovies() {
-        let saved_request_id = this.request_id = uuid.v4()
-        socket.send('movies', { search: this.search }, movies => {
+      async loadMovies() {
+        try {
+          let saved_request_id = this.request_id = uuid.v4()
+          let movies = await socket.send('movies', { search: this.search })
           if(this.request_id !== saved_request_id) return
           this.movies = movies
-        })
+        } catch(message) {
+          alert(message)
+        }
         /*
           this.$http.get("/api/videos?search=" + this.search).then(response => {
             this.movies = response.body
