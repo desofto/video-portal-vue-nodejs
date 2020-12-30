@@ -16,7 +16,7 @@ RedisMQ.subscribe("videos", async req => {
   session.token++
   session.save()
 
-  let videos = await Video.where("name ilike $1 order by rating desc", ["%" + req.query.search + "%"])
+  let videos = await Video.where("name ilike $1 order by rating desc", ["%" + req.search + "%"])
 
   let data = videos.map(video => ({
     id: video.id,
@@ -29,8 +29,8 @@ RedisMQ.subscribe("videos", async req => {
 })
 
 RedisMQ.subscribe("video-post", async req => {
-  let video = await Video.find(req.params.id)
-  video.rating = req.body.rating
+  let video = await Video.find(req.id)
+  video.rating = req.rating
   await video.save()
 
   return

@@ -30,8 +30,10 @@ app.use(cookieParser())
 
 const WebSocket = require('ws')
 const wss = new WebSocket.Server({ server })
+var cookie = require('cookie')
 
-wss.on('connection', ws => {
+wss.on('connection', (ws, req) => {
+  let sessionId = cookie.parse(req.headers.cookie)['session-id']
   ws.isAlive = true
 
   ws.on('pong', () => {
@@ -41,6 +43,7 @@ wss.on('connection', ws => {
   ws.on('message', async message => {
     message = JSON.parse(message)
     let { id, command, params } = message
+    params.sessionId = sessionId
     let { status, data } = await RedisMQ.process(command, params)
     ws.send(JSON.stringify({ id, status, data }))
   })
@@ -54,6 +57,17 @@ setInterval(() => {
     ws.ping(null, false, true)
   })
 }, 10000)
+
+/*****************************************************/
+
+const uuid = require("uuid")
+
+app.use(async (req, res, next) => {
+  req.sessionId = (req.cookies && req.cookies['session-id']) || uuid.v4()
+  res.cookie('session-id', req.sessionId, { maxAge: 900 * 1000, httpOnly: true, SameSite: 'Strict' })
+
+  next()
+})
 
 /*****************************************************/
 
@@ -71,17 +85,6 @@ app.get("/dist/main.bundle.js", async (req, res) => {
 
 app.get("/dist/main.bundle.js.map", async (req, res) => {
   res.status(200).sendFile("main.bundle.js.map", { root: __dirname + "/dist" })
-})
-
-/*****************************************************/
-
-const uuid = require("uuid")
-
-app.use(async (req, res, next) => {
-  req.sessionId = (req.cookies && req.cookies['session-id']) || uuid.v4()
-  res.cookie('session-id', req.sessionId, { maxAge: 900 * 1000, httpOnly: true, SameSite: 'Strict' })
-
-  next()
 })
 
 /*****************************************************/
@@ -168,7 +171,8 @@ function processor(channel) {
         res.status(504).send("Timeout")
       }, 60 * 1000)
 
-      let params = (({ params, query, body, sessionId }) => ({ params, query, body, sessionId }))(req)
+      let params = Object.assign(req.query, req.body, req.params)
+      params.sessionId = req.sessionId
       let { status, data } = await RedisMQ.process(channel, params)
 
       res.status(status).send(data)
