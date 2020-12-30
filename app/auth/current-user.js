@@ -35,6 +35,7 @@ class User {
     try {
       let response = await Vue.http.post('/api/login', form)
       this.store(response.body)
+      Vue.prototype.$globals.$emit('user-login')
     } catch (response) {
       throw new Error(response.body)
     }
@@ -44,6 +45,7 @@ class User {
     try {
       let response = await Vue.http.post('/api/logout')
       this.store(response.body)
+      Vue.prototype.$globals.$emit('user-logout')
     } catch (response) {
       throw new Error(response.body)
     }

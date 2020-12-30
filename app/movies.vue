@@ -30,6 +30,12 @@
 
     mounted() {
       this.loadMovies()
+      this.$globals.$on('user-login', () => {
+        this.loadMovies()
+      })
+      this.$globals.$on('user-logout', () => {
+        this.loadMovies()
+      })
     },
 
     methods: {
