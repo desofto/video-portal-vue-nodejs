@@ -7,15 +7,19 @@
 </template>
 
 <script>
+  import socket from './ws'
   import Movie from "@/movie"
-  
+
+  const uuid = require('uuid')
+
   export default {
     props: {
       search: String,
     },
 
     data: () => ({
-      movies: []
+      movies: [],
+      request_id: null
     }),
 
     watch: {
@@ -30,11 +34,18 @@
 
     methods: {
       loadMovies() {
-        this.$http.get("/api/videos?search=" + this.search).then(response => {
-          this.movies = response.body
-        }, response => {
-          alert("Backend error: " + response.body)
+        let saved_request_id = this.request_id = uuid.v4()
+        socket.send('movies', { search: this.search }, movies => {
+          if(this.request_id !== saved_request_id) return
+          this.movies = movies
         })
+        /*
+          this.$http.get("/api/videos?search=" + this.search).then(response => {
+            this.movies = response.body
+          }, response => {
+            alert("Backend error: " + response.body)
+          })
+        */
       },
 
       updateRating(movie, rating) {

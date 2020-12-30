@@ -32,9 +32,10 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "node-uuid": "^1.4.8",
     "pg": "^8.5.1",
-    "redis-fast-driver": "^2.1.5"
+    "redis-fast-driver": "^2.1.5",
+    "uuid": "^8.3.2",
+    "ws": "^7.4.2"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",

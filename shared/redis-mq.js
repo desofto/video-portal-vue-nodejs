@@ -1,7 +1,7 @@
 "use strict"
 
 const Redis = require("./redis")
-const uuid = require("node-uuid")
+const uuid = require("uuid")
 
 const { NotFound, UnprocessableEntity } = require("./exceptions")
 

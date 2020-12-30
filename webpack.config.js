@@ -78,7 +78,11 @@ module.exports = (env, argv) => {
         },
         "/api/*": {
           target: `http://localhost:${process.env.PORT}`
-        }
+        },
+        '/ws': {
+          target: `ws://localhost:${process.env.PORT}`,
+          ws: true
+        },
       }
     },
     performance: {

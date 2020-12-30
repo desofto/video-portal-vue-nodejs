@@ -6,7 +6,12 @@ dotenv.config()
 const express = require("express")
 
 const app = express()
+
+const http = require('http')
+const server = http.createServer(app)
+
 app.use(express.urlencoded({ extended: false }))
+
 app.use(express.json())
 
 const cors = require("cors")
@@ -21,7 +26,34 @@ app.use(compression())
 const cookieParser = require("cookie-parser")
 app.use(cookieParser())
 
-const RedisMQ = require("./shared/redis-mq")
+/*****************************************************/
+
+const WebSocket = require('ws')
+const wss = new WebSocket.Server({ server })
+
+wss.on('connection', ws => {
+  ws.isAlive = true
+
+  ws.on('pong', () => {
+    ws.isAlive = true
+  })
+
+  ws.on('message', async message => {
+    message = JSON.parse(message)
+    let { id, command, params } = message
+    let { status, data } = await RedisMQ.process(command, params)
+    ws.send(JSON.stringify({ id, status, data }))
+  })
+})
+
+setInterval(() => {
+  wss.clients.forEach(ws => {
+    if (!ws.isAlive) return ws.terminate()
+
+    ws.isAlive = false
+    ws.ping(null, false, true)
+  })
+}, 10000)
 
 /*****************************************************/
 
@@ -43,7 +75,7 @@ app.get("/dist/main.bundle.js.map", async (req, res) => {
 
 /*****************************************************/
 
-const uuid = require("node-uuid")
+const uuid = require("uuid")
 
 app.use(async (req, res, next) => {
   req.sessionId = (req.cookies && req.cookies['session-id']) || uuid.v4()
@@ -75,13 +107,13 @@ const User = require("./models/user")
 app.post("/api/signup", async (req, res) => {
   try {
     if (req.body.password !== req.body.password_confirm) throw new Error('Passwords do not match')
-    
+
     let user
     try {
       user = await User.findBySQL("email = $1", [req.body.email])
     } catch {}
     if (user) throw new Error('Already registered')
-    
+
     user = new User()
     user.email = req.body.email
     user.password = req.body.password
@@ -127,6 +159,8 @@ app.post("/api/logout", async (req, res) => {
 
 /*****************************************************/
 
+const RedisMQ = require("./shared/redis-mq")
+
 function processor(channel) {
   return async function(req, res) {
     try {
@@ -151,7 +185,7 @@ app.put("/api/video/:id", processor("video-post"))
 
 /*****************************************************/
 
-app.listen(process.env.PORT).on("listening", () => {
+server.listen(process.env.PORT).on("listening", () => {
   console.log(`Started on port ${process.env.PORT}`)
 })
 
