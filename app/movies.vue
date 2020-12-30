@@ -36,7 +36,7 @@
       async loadMovies() {
         try {
           let saved_request_id = this.request_id = uuid.v4()
-          let movies = await socket.send('movies', { search: this.search })
+          let movies = await socket.send('videos', { search: this.search })
           if(this.request_id !== saved_request_id) return
           this.movies = movies
         } catch(message) {

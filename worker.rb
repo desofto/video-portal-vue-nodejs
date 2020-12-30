@@ -35,7 +35,7 @@ class Processor
         res['data'] = @channels[channel].call(req)
 
         res['status'] = res['data'] ? 200 : 204
-      rescue 
+      rescue
         res['status'] = 500
       end
 
@@ -54,7 +54,7 @@ end
 processor = Processor.new
 
 processor.add "videos" do |req, res|
-  videos = Video.where('name ilike ?', "%" + req.dig('query', 'search') + "%").order(rating: :desc)
+  videos = Video.where('name ilike ?', "%" + req['search'] + "%").order(rating: :desc)
 
   videos.map do |video|
     {
@@ -67,8 +67,8 @@ processor.add "videos" do |req, res|
 end
 
 processor.add "video-post" do |req, res|
-  video = Video.find(req.dig('params', 'id'))
-  video.rating = req.dig('body', 'rating')
+  video = Video.find(req['id'])
+  video.rating = req['rating']
   video.save!
 end
 
