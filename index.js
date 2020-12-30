@@ -191,6 +191,8 @@ app.put("/api/video/:id", processor("video-post"))
 
 server.listen(process.env.PORT).on("listening", () => {
   console.log(`Started on port ${process.env.PORT}`)
+  const fs = require('fs')
+  fs.writeFile('video-portal.pid', String(process.pid), () => {})
 })
 
 /*****************************************************/
