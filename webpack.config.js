@@ -98,12 +98,14 @@ module.exports = (env, argv) => {
             ],
           }
         }),
+        /*
         new UglifyJsPlugin({
           test: /\.js(\?.*)?$/i,
           cache: true,
           parallel: true,
           sourceMap: !production
         })
+        */
       ] : []
     },
     devtool: false,
