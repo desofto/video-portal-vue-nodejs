@@ -45,6 +45,8 @@ class Model extends GettersSetters {
         params.push(this._changes[name])
       })
 
+      if (fields.length < 1) return
+
       let sql = `update ${this.constructor.TableName} set ${fields.join(", ")} where id = $1`
 
       let res = await pool.query(sql, params)
@@ -61,6 +63,8 @@ class Model extends GettersSetters {
         values.push("$" + (1 + index))
         params.push(this._changes[name])
       })
+
+      if (fields.length < 1) return
 
       let sql = `insert into ${this.constructor.TableName}(${fields.join(", ")}) values(${values.join(", ")}) RETURNING id`
 
