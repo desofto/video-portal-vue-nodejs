@@ -1,4 +1,5 @@
 const uuid = require('uuid')
+const pako = require('pako')
 
 class WS {
   constructor(url) {
@@ -12,7 +13,7 @@ class WS {
   send(command, params) {
     return new Promise((resolve, reject) => {
       let id = uuid.v4()
-      let message = JSON.stringify({ id, command, params })
+      let message = pako.deflate(JSON.stringify({ id, command, params }))
       this.promises[id] = { resolve, reject }
       if (this.socket.readyState == WebSocket.OPEN) {
         this.socket.send(message)
@@ -33,17 +34,21 @@ class WS {
     }
 
     this.socket.onmessage = event => {
-      let message = JSON.parse(event.data)
-      let { id, status, data } = message
-      let { resolve, reject } = this.promises[id]
-      delete this.promises[id]
-      if (resolve) {
-        if(status >= 200 && status < 300) {
-          resolve(data)
-        } else {
-          reject(data)
+      let fileReader = new FileReader()
+      fileReader.onload = () => {
+        let message = JSON.parse(pako.inflate(fileReader.result, { to: 'string' }))
+        let { id, status, data } = message
+        let { resolve, reject } = this.promises[id]
+        delete this.promises[id]
+        if (resolve) {
+          if (status >= 200 && status < 300) {
+            resolve(data)
+          } else {
+            reject(data)
+          }
         }
       }
+      fileReader.readAsArrayBuffer(event.data)
     }
 
     this.socket.onclose = event => {

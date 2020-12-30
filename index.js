@@ -32,7 +32,8 @@ const RedisMQ = require("./shared/redis-mq")
 
 const WebSocket = require('ws')
 const wss = new WebSocket.Server({ server })
-var cookie = require('cookie')
+const cookie = require('cookie')
+const pako = require('pako')
 
 wss.on('connection', (ws, req) => {
   let sessionId = cookie.parse(req.headers.cookie)['session-id']
@@ -43,11 +44,11 @@ wss.on('connection', (ws, req) => {
   })
 
   ws.on('message', async message => {
-    message = JSON.parse(message)
+    message = JSON.parse(pako.inflate(message, { to: 'string' }))
     let { id, command, params } = message
     params.sessionId = sessionId
     let { status, data } = await RedisMQ.process(command, params)
-    ws.send(JSON.stringify({ id, status, data }))
+    ws.send(pako.deflate(JSON.stringify({ id, status, data })))
   })
 })
 
