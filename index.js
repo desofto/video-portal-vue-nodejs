@@ -26,6 +26,8 @@ app.use(compression())
 const cookieParser = require("cookie-parser")
 app.use(cookieParser())
 
+const RedisMQ = require("./shared/redis-mq")
+
 /*****************************************************/
 
 const WebSocket = require('ws')
@@ -161,8 +163,6 @@ app.post("/api/logout", async (req, res) => {
 })
 
 /*****************************************************/
-
-const RedisMQ = require("./shared/redis-mq")
 
 function processor(channel) {
   return async function(req, res) {
