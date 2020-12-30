@@ -49,7 +49,7 @@ function subscribe(channel, callback) {
       let redis = Redis()
 
       let data = await redis.rawCallAsync(["BRPOP", channel, 0])
-      let key = data[1]
+      let [_, key] = data
 
       try {
         setTimeout(_ => {
