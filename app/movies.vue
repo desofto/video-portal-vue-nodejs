@@ -40,6 +40,7 @@
 
     methods: {
       async loadMovies() {
+        /*
         try {
           let saved_request_id = this.request_id = uuid.v4()
           let movies = await socket.send('videos', { search: this.search })
@@ -48,13 +49,12 @@
         } catch(message) {
           alert(message)
         }
-        /*
+        */
           this.$http.get("/api/videos?search=" + this.search).then(response => {
             this.movies = response.body
           }, response => {
             alert("Backend error: " + response.body)
           })
-        */
       },
 
       updateRating(movie, rating) {

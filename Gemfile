@@ -2,6 +2,8 @@ source 'https://rubygems.org'
 
 gem 'dotenv'
 
+gem 'sinatra'
+
 gem 'pg', '1.2.2'
 gem 'redis', '4.1.3'
 

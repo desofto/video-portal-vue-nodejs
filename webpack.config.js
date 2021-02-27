@@ -77,7 +77,11 @@ module.exports = (env, argv) => {
           target: `http://localhost:${process.env.PORT}`
         },
         "/api/*": {
-          target: `http://localhost:${process.env.PORT}`
+          //target: `http://localhost:${process.env.PORT}`
+          target: 'https://rvolkp26o2.execute-api.eu-central-1.amazonaws.com/',
+          //target: 'https://desofto-video-portal.herokuapp.com/',
+          secure: false,
+          changeOrigin: true
         },
         '/ws': {
           target: `ws://localhost:${process.env.PORT}`,

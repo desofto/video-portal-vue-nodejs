@@ -2,6 +2,7 @@ const dotenv = require("dotenv")
 dotenv.config()
 
 const Pool = require("pg").Pool
+//const databaseConfig = { connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } }
 const databaseConfig = { connectionString: process.env.DATABASE_URL }
 const pool = new Pool(databaseConfig)
 
